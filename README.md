@@ -1,10 +1,10 @@
-# 💡 Lighthouse BSV
+# 💡 Lighthouse Bitcoin SV
 
 **Decentralized crowdfunding using Bitcoin assurance contracts**
 
 A trustless crowdfunding platform where pledges are only collected when the funding goal is met. No central authority, no platform fees, just pure Bitcoin magic! ✨
 
-Based on Mike Hearn's pioneering Lighthouse project, rebuilt for BSV blockchain with modern tooling.
+Based on Mike Hearn's pioneering Lighthouse project, rebuilt for Bitcoin blockchain with modern tooling.
 
 ---
 
@@ -34,7 +34,7 @@ open http://localhost:7184
 - 🖥️ **Web Interface**: Modern React app for browsing projects at `http://localhost:7184`
 - ⚡ **CLI Tool**: Full-featured command-line interface for wallet operations
 - 🔐 **Bitcoin Signatures**: Use your own wallet and private keys
-- 💰 **Assurance Contracts**: SIGHASH_ANYONECANPAY magic on BSV blockchain
+- 💰 **Assurance Contracts**: SIGHASH_ANYONECANPAY magic on Bitcoin blockchain
 
 ---
 
@@ -45,18 +45,18 @@ open http://localhost:7184
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                   🌐 Web Interface                          │
-│              Next.js + BigBlocks + BSV Auth                 │
+│              Next.js + BigBlocks + Bitcoin Auth             │
 │                   (Port 7184)                               │
 └─────────────────┬───────────────────────────────────────────┘
                   │ HTTP API calls
 ┌─────────────────▼───────────────────────────────────────────┐
 │                   🔧 Go CLI Backend                         │
 │            Project & Pledge Management                      │
-│              BSV SDK + Protocol Buffers                     │
+│              Bitcoin SDK + Protocol Buffers                 │
 └─────────────────┬───────────────────────────────────────────┘
-                  │ BSV transactions
+                  │ Bitcoin transactions
 ┌─────────────────▼───────────────────────────────────────────┐
-│                  ⛓️  BSV Blockchain                         │
+│                  ⛓️  Bitcoin Blockchain                     │
 │              Assurance Contract Magic                       │
 │          SIGHASH_ANYONECANPAY signatures                    │
 └─────────────────────────────────────────────────────────────┘
@@ -64,9 +64,9 @@ open http://localhost:7184
 
 ### **Core Technologies**
 
-- **Backend**: Go + BSV SDK + Protocol Buffers
+- **Backend**: Go + Bitcoin SDK + Protocol Buffers
 - **Frontend**: Next.js 15 + TypeScript + BigBlocks
-- **Blockchain**: BSV with assurance contracts
+- **Blockchain**: Bitcoin with assurance contracts
 - **Authentication**: Bitcoin cryptographic signatures
 - **Styling**: Tailwind CSS v4 + Original Lighthouse design
 
@@ -78,7 +78,7 @@ open http://localhost:7184
 
 - **Go 1.21+** - For building the CLI tool
 - **Bun 1.0+** - For the web interface
-- **BSV Wallet** - For testing pledges (can use testnet)
+- **Bitcoin Wallet** - For testing pledges (can use testnet)
 
 ### **Step 1: Build the CLI**
 
@@ -214,7 +214,7 @@ bun test         # Run tests
 ### **The Magic of SIGHASH_ANYONECANPAY**
 
 ```
-1. 🎯 Project Created     → Set funding goal & BSV address
+1. 🎯 Project Created     → Set funding goal & Bitcoin address
 2. 💰 Pledges Made        → Partial transactions with special signatures
 3. 🔄 Revocable Anytime   → Get your money back before goal reached  
 4. 🎉 Goal Reached        → All pledges automatically combine and pay out
@@ -275,8 +275,8 @@ lighthouse --version
 
 ```bash
 # Web Interface (.env.local)
-NEXT_PUBLIC_APP_NAME="Lighthouse BSV"
-NEXT_PUBLIC_APP_DESCRIPTION="BSV Crowdfunding with Assurance Contracts"
+NEXT_PUBLIC_APP_NAME="Lighthouse Bitcoin SV"
+NEXT_PUBLIC_APP_DESCRIPTION="Bitcoin Crowdfunding with Assurance Contracts"
 NEXT_PUBLIC_APP_URL="http://localhost:7184"
 
 # Optional API keys for enhanced features
@@ -315,7 +315,7 @@ bun test
 ### **Manual Testing Workflow**
 
 1. **Start the web interface**: `bun dev` (for browsing projects)
-2. **Create a test project**: `lighthouse project create "Test Project" --goal 1.0 --address your_bsv_address`
+2. **Create a test project**: `lighthouse project create "Test Project" --goal 1.0 --address your_bitcoin_address`
 3. **Make a pledge**: `lighthouse pledge create Test_Project.lighthouse --amount 0.5 --wif your_private_key --utxo txid:vout:satoshis`
 4. **View project**: Browse to web interface to see progress
 5. **Test revocation**: `lighthouse pledge revoke pledge_file.pledge --wif your_private_key`
@@ -341,8 +341,17 @@ This project is inspired by **Mike Hearn's original Lighthouse** (2014-2016), th
 - ✅ **All-or-nothing funding** (same payout logic)
 
 **What We Modernized:**
-- 🔄 **Interface**: JavaFX desktop → Web browser + CLI tool
+- 🔄 **Interface**: JavaFX desktop → Web browser + CLI tool  
 - 🔄 **Language**: Java → Go + TypeScript
+- 🔄 **Discovery**: Manual file sharing → Web project gallery
+- 🔄 **Maintenance**: Abandoned 2016 → Actively maintained
+
+**Gaps We Fixed From Original:**
+- ✅ **Project Expiration**: Add deadline support (Mike Hearn noted this was missing)
+- ✅ **Web Discovery**: Browse projects online instead of manual .lighthouse file sharing
+- ✅ **Restored Original Bitcoin**: Bitcoin SV preserves the unlimited scaling Mike Hearn expected
+- ✅ **Stable Economics**: Bitcoin's predictable fees vs Bitcoin Core's volatility
+- ✅ **Modern Tooling**: Updated dependencies and build system
 
 ---
 
@@ -361,9 +370,9 @@ Apache 2.0 - See [LICENSE](LICENSE) file
 ## 🙏 **Acknowledgments**
 
 - **Mike Hearn** - Original Lighthouse creator and Bitcoin pioneer
-- **BSV Community** - For supporting unlimited blockchain scaling
+- **Bitcoin SV Community** - For supporting unlimited blockchain scaling
 - **BigBlocks Team** - For Bitcoin authentication components
-- **Go BSV SDK** - For robust blockchain integration
+- **Go Bitcoin SDK** - For robust blockchain integration
 
 ---
 
@@ -372,6 +381,5 @@ Apache 2.0 - See [LICENSE](LICENSE) file
 - **Documentation**: See `/docs` directory
 - **Issues**: GitHub Issues for bugs and feature requests  
 - **Discussions**: GitHub Discussions for questions
-- **Email**: lighthouse-bsv@example.com
 
 **Ready to revolutionize crowdfunding? Let's build the future together! 🚀**
