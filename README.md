@@ -335,13 +335,14 @@ This project is inspired by **Mike Hearn's original Lighthouse** (2014-2016), th
 - ✅ **SIGHASH_ANYONECANPAY** assurance contracts
 - ✅ **Private key signing** (WIF format, same as original)
 - ✅ **.lighthouse project files** (compatible format)
+- ✅ **Protocol buffers** for project/pledge data structure
 - ✅ **Decentralized design** (no server required for core function)
 - ✅ **Revocable pledges** (same cryptographic mechanism)
 - ✅ **All-or-nothing funding** (same payout logic)
 
 **What We Modernized:**
 - 🔄 **Interface**: JavaFX desktop → Web browser + CLI tool
-- 🔄 **Protocol**: Enhanced with protocol buffers for better structure
+- 🔄 **Language**: Java → Go + TypeScript
 
 ---
 
