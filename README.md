@@ -31,9 +31,9 @@ open http://localhost:7184
 
 ### **What You Get**
 
-- 🖥️ **Web Interface**: Modern React app with Bitcoin authentication at `http://localhost:7184`
-- ⚡ **CLI Tool**: Command-line interface for power users
-- 🔐 **Bitcoin Auth**: No passwords, just cryptographic signatures
+- 🖥️ **Web Interface**: Modern React app for browsing projects at `http://localhost:7184`
+- ⚡ **CLI Tool**: Full-featured command-line interface for wallet operations
+- 🔐 **Bitcoin Signatures**: Use your own wallet and private keys
 - 💰 **Assurance Contracts**: SIGHASH_ANYONECANPAY magic on BSV blockchain
 
 ---
@@ -123,13 +123,14 @@ bun dev
 
 ## 🎯 **Usage Examples**
 
-### **Web Interface (Recommended)**
+### **Web Interface (Browsing Only)**
 
 1. **Browse Projects**: http://localhost:7184/projects
-2. **Create Account**: Bitcoin-based authentication, no passwords!
-3. **Create Project**: Set funding goal and description
-4. **Make Pledges**: Support projects with SIGHASH_ANYONECANPAY
-5. **Manage Pledges**: Revoke anytime before goal is reached
+2. **View Project Details**: See funding progress and status
+3. **For Actions**: Use CLI tool with your Bitcoin wallet
+   - Create projects with `lighthouse project create`
+   - Make pledges with `lighthouse pledge create`
+   - Manage pledges with CLI commands
 
 ### **CLI Interface (Power Users)**
 
@@ -313,12 +314,12 @@ bun test
 
 ### **Manual Testing Workflow**
 
-1. **Start the web interface**: `bun dev`
-2. **Create a Bitcoin identity**: Sign up with no password
-3. **Create a test project**: Set a small funding goal
-4. **Make a pledge**: Use testnet BSV
-5. **Test revocation**: Revoke your pledge
-6. **Test completion**: Make enough pledges to reach goal
+1. **Start the web interface**: `bun dev` (for browsing projects)
+2. **Create a test project**: `lighthouse project create "Test Project" --goal 1.0 --address your_bsv_address`
+3. **Make a pledge**: `lighthouse pledge create Test_Project.lighthouse --amount 0.5 --wif your_private_key --utxo txid:vout:satoshis`
+4. **View project**: Browse to web interface to see progress
+5. **Test revocation**: `lighthouse pledge revoke pledge_file.pledge --wif your_private_key`
+6. **Test completion**: Make enough pledges to reach goal and claim funds
 
 ---
 
@@ -328,14 +329,13 @@ This project is inspired by **Mike Hearn's original Lighthouse** (2014-2016), th
 
 > *"The goal of the Lighthouse design is to keep as much logic out of the server and in the fat client as possible... aiming for a highly decentralised design in which it's feasible for individuals with no sysadmin ability to create and run crowdfunding campaigns."*
 
-### **Original vs BSV Implementation**
+### **Implementation Evolution**
 
-| Feature | Original (2014) | BSV Version (2024) |
+| Feature | Mike Hearn's Lighthouse | This Implementation |
 |---------|----------------|-------------------|
-| **Blockchain** | Bitcoin Core | BSV (unlimited scale) |
 | **Interface** | JavaFX Desktop | Next.js Web + CLI |
 | **Authentication** | Desktop wallet | Bitcoin cryptographic signatures |
-| **Smart Contracts** | SIGHASH_ANYONECANPAY | Enhanced with BSV features |
+| **Smart Contracts** | SIGHASH_ANYONECANPAY | SIGHASH_ANYONECANPAY on BSV |
 | **File Format** | .lighthouse files | Compatible + protocol buffers |
 
 ---
