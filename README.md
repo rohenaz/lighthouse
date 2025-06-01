@@ -329,14 +329,19 @@ This project is inspired by **Mike Hearn's original Lighthouse** (2014-2016), th
 
 > *"The goal of the Lighthouse design is to keep as much logic out of the server and in the fat client as possible... aiming for a highly decentralised design in which it's feasible for individuals with no sysadmin ability to create and run crowdfunding campaigns."*
 
-### **Implementation Evolution**
+### **Staying True to the Original**
 
-| Feature | Mike Hearn's Lighthouse | This Implementation |
-|---------|----------------|-------------------|
-| **Interface** | JavaFX Desktop | Next.js Web + CLI |
-| **Authentication** | Desktop wallet | Bitcoin cryptographic signatures |
-| **Smart Contracts** | SIGHASH_ANYONECANPAY | SIGHASH_ANYONECANPAY on BSV |
-| **File Format** | .lighthouse files | Compatible + protocol buffers |
+**What We Kept Exactly the Same:**
+- ✅ **SIGHASH_ANYONECANPAY** assurance contracts
+- ✅ **Private key signing** (WIF format, same as original)
+- ✅ **.lighthouse project files** (compatible format)
+- ✅ **Decentralized design** (no server required for core function)
+- ✅ **Revocable pledges** (same cryptographic mechanism)
+- ✅ **All-or-nothing funding** (same payout logic)
+
+**What We Modernized:**
+- 🔄 **Interface**: JavaFX desktop → Web browser + CLI tool
+- 🔄 **Protocol**: Enhanced with protocol buffers for better structure
 
 ---
 
