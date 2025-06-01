@@ -1,0 +1,229 @@
+package core
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewContract(t *testing.T) {
+	project, err := NewProject(
+		"Contract Test",
+		"Test Description",
+		100000000, // 1 BSV
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+	assert.NotNil(t, contract)
+	assert.Equal(t, uint64(0), contract.TotalPledged())
+	assert.Equal(t, 0.0, contract.Progress())
+	assert.False(t, contract.CanClaim())
+	assert.Len(t, contract.Pledges(), 0)
+}
+
+func TestContractAddPledge(t *testing.T) {
+	// Create test project
+	project, err := NewProject(
+		"Contract Test",
+		"Test Description",
+		100000000, // 1 BSV goal
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+
+	// Create test pledge
+	utxos := createTestUTXOs(t, 50000000)
+	pledge, err := NewPledge(project, 25000000, utxos) // 0.25 BSV
+	require.NoError(t, err)
+
+	t.Run("add valid pledge", func(t *testing.T) {
+		err := contract.AddPledge(pledge)
+		assert.NoError(t, err)
+		assert.Equal(t, uint64(25000000), contract.TotalPledged())
+		assert.Equal(t, 25.0, contract.Progress()) // 25% of 1 BSV goal
+		assert.False(t, contract.CanClaim())       // Still under goal
+		assert.Len(t, contract.Pledges(), 1)
+	})
+
+	t.Run("add pledge for different project", func(t *testing.T) {
+		// Create different project
+		otherProject, err := NewProject(
+			"Other Project",
+			"Different project",
+			200000000,
+			"1OtherAddress12345678901234567890",
+		)
+		require.NoError(t, err)
+
+		// Create pledge for different project
+		otherUtxos := createTestUTXOs(t, 30000000)
+		otherPledge, err := NewPledge(otherProject, 20000000, otherUtxos)
+		require.NoError(t, err)
+
+		// Should fail to add to wrong contract
+		err = contract.AddPledge(otherPledge)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "different project")
+	})
+}
+
+func TestContractProgress(t *testing.T) {
+	// Create project with 1 BSV goal
+	project, err := NewProject(
+		"Progress Test",
+		"Test Description",
+		100000000,
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+
+	// Add pledges to reach different progress levels
+	testCases := []struct {
+		pledgeAmount     uint64
+		expectedProgress float64
+		canClaim         bool
+	}{
+		{25000000, 25.0, false},  // 25%
+		{25000000, 50.0, false},  // 50%
+		{30000000, 80.0, false},  // 80%
+		{20000000, 100.0, true},  // 100% - can claim
+	}
+
+	for i, tc := range testCases {
+		utxos := createTestUTXOs(t, tc.pledgeAmount+10000) // Add some buffer
+		pledge, err := NewPledge(project, tc.pledgeAmount, utxos)
+		require.NoError(t, err, "test case %d", i)
+
+		err = contract.AddPledge(pledge)
+		require.NoError(t, err, "test case %d", i)
+
+		assert.Equal(t, tc.expectedProgress, contract.Progress(), "test case %d progress", i)
+		assert.Equal(t, tc.canClaim, contract.CanClaim(), "test case %d can claim", i)
+	}
+}
+
+func TestContractStatus(t *testing.T) {
+	project, err := NewProject(
+		"Status Test",
+		"Test Description",
+		100000000, // 1 BSV goal
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+
+	// Initial status
+	status := contract.GetStatus()
+	assert.Equal(t, project.ID(), status.ProjectID)
+	assert.Equal(t, uint64(100000000), status.GoalAmount)
+	assert.Equal(t, uint64(0), status.TotalPledged)
+	assert.Equal(t, 0, status.PledgeCount)
+	assert.Equal(t, 0.0, status.Progress)
+	assert.False(t, status.CanClaim)
+	assert.False(t, status.IsExpired)
+
+	// Add a pledge
+	utxos := createTestUTXOs(t, 30000000)
+	pledge, err := NewPledge(project, 25000000, utxos)
+	require.NoError(t, err)
+
+	err = contract.AddPledge(pledge)
+	require.NoError(t, err)
+
+	// Updated status
+	status = contract.GetStatus()
+	assert.Equal(t, uint64(25000000), status.TotalPledged)
+	assert.Equal(t, 1, status.PledgeCount)
+	assert.Equal(t, 25.0, status.Progress)
+	assert.False(t, status.CanClaim)
+}
+
+func TestContractRemovePledge(t *testing.T) {
+	project, err := NewProject(
+		"Remove Test",
+		"Test Description",
+		100000000,
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+
+	// Add a pledge
+	utxos := createTestUTXOs(t, 30000000)
+	pledge, err := NewPledge(project, 25000000, utxos)
+	require.NoError(t, err)
+
+	err = contract.AddPledge(pledge)
+	require.NoError(t, err)
+	assert.Len(t, contract.Pledges(), 1)
+
+	// Remove the pledge
+	err = contract.RemovePledge(pledge.ID())
+	assert.NoError(t, err)
+	assert.Len(t, contract.Pledges(), 0)
+	assert.Equal(t, uint64(0), contract.TotalPledged())
+
+	// Try to remove non-existent pledge
+	err = contract.RemovePledge("non-existent-id")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "pledge not found")
+}
+
+func TestContractCombine(t *testing.T) {
+	project, err := NewProject(
+		"Combine Test",
+		"Test Description",
+		100000000, // 1 BSV goal
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	contract := NewContract(project)
+
+	t.Run("cannot combine before goal reached", func(t *testing.T) {
+		// Add pledge that doesn't reach goal
+		utxos := createTestUTXOs(t, 30000000)
+		pledge, err := NewPledge(project, 25000000, utxos) // Only 25% of goal
+		require.NoError(t, err)
+
+		err = contract.AddPledge(pledge)
+		require.NoError(t, err)
+
+		tx, err := contract.Combine()
+		assert.Error(t, err)
+		assert.Nil(t, tx)
+		assert.Contains(t, err.Error(), "funding goal not reached")
+	})
+
+	t.Run("can combine when goal reached", func(t *testing.T) {
+		// Add more pledges to reach the goal
+		for i := 0; i < 3; i++ {
+			utxos := createTestUTXOs(t, 30000000)
+			pledge, err := NewPledge(project, 25000000, utxos)
+			require.NoError(t, err)
+			
+			err = contract.AddPledge(pledge)
+			require.NoError(t, err)
+		}
+
+		// Now we should be able to combine (4 * 25M = 100M satoshis = goal)
+		assert.True(t, contract.CanClaim())
+
+		tx, err := contract.Combine()
+		assert.NoError(t, err)
+		assert.NotNil(t, tx)
+		
+		// Verify transaction has inputs and outputs
+		assert.Greater(t, len(tx.Inputs), 0)
+		assert.Greater(t, len(tx.Outputs), 0)
+	})
+}

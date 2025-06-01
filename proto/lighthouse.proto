@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+package lighthouse;
+option go_package = "./core/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// Project represents a crowdfunding campaign
+message Project {
+  // Version of the project format
+  uint32 version = 1;
+  
+  // Project details
+  ProjectDetails details = 2;
+  
+  // Extra metadata not in original BIP70
+  ProjectExtraDetails extra = 3;
+  
+  // Signature over the project (future use)
+  bytes signature = 4;
+}
+
+// ProjectDetails follows BIP70 PaymentRequest structure
+message ProjectDetails {
+  // Network (mainnet/testnet)
+  string network = 1;
+  
+  // Outputs that define where funds go
+  repeated Output outputs = 2;
+  
+  // Unix timestamp when project was created
+  google.protobuf.Timestamp time = 3;
+  
+  // Optional expiration time
+  google.protobuf.Timestamp expires = 4;
+  
+  // Human-readable description
+  string memo = 5;
+  
+  // URL for project updates (optional)
+  string payment_url = 6;
+  
+  // Arbitrary data for the merchant
+  bytes merchant_data = 7;
+}
+
+// Extended details beyond BIP70
+message ProjectExtraDetails {
+  // Short title for the project
+  string title = 1;
+  
+  // Cover image bytes (JPEG/PNG)
+  bytes cover_image = 2;
+  
+  // Auth key for project ownership proof
+  bytes auth_key = 3;
+  
+  // Minimum pledge amount in satoshis
+  uint64 min_pledge_amount = 4;
+  
+  // Project category/tags
+  repeated string tags = 5;
+}
+
+// Output represents a transaction output
+message Output {
+  // Amount in satoshis
+  uint64 amount = 1;
+  
+  // Locking script
+  bytes script = 2;
+}
+
+// Pledge represents a contribution to a project
+message Pledge {
+  // Project ID this pledge is for
+  bytes project_id = 1;
+  
+  // Transaction inputs signed with SIGHASH_ANYONECANPAY
+  repeated Input inputs = 2;
+  
+  // Contact info (optional)
+  ContactInfo contact = 3;
+  
+  // Message from pledger
+  string memo = 4;
+  
+  // Unix timestamp
+  google.protobuf.Timestamp time = 5;
+  
+  // Refund address if project fails
+  string refund_address = 6;
+}
+
+// Input for a pledge transaction
+message Input {
+  // Previous transaction hash
+  bytes tx_hash = 1;
+  
+  // Output index
+  uint32 output_index = 2;
+  
+  // Unlocking script with SIGHASH_ANYONECANPAY signature
+  bytes unlock_script = 3;
+  
+  // Sequence number
+  uint32 sequence = 4;
+}
+
+// Contact information for pledger
+message ContactInfo {
+  // Name (optional)
+  string name = 1;
+  
+  // Email (optional)
+  string email = 2;
+}
+
+// ProjectStatus for server responses
+message ProjectStatus {
+  // Project being tracked
+  Project project = 1;
+  
+  // All pledges received
+  repeated Pledge pledges = 2;
+  
+  // Total amount pledged
+  uint64 total_pledged = 3;
+  
+  // Whether project has been claimed
+  bool claimed = 4;
+  
+  // Transaction ID if claimed
+  bytes claim_tx = 5;
+}

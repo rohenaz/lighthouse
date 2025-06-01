@@ -1,0 +1,169 @@
+package core
+
+import (
+	"testing"
+
+	ec "github.com/bsv-blockchain/go-sdk/primitives/ec"
+	"github.com/bsv-blockchain/go-sdk/script"
+	"github.com/bsv-blockchain/go-sdk/transaction"
+	"github.com/bsv-blockchain/go-sdk/transaction/template/p2pkh"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNewPledge(t *testing.T) {
+	// Create a test project
+	project, err := NewProject(
+		"Test Project",
+		"Test Description",
+		100000000, // 1 BSV
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	// Create a test UTXO
+	utxos := createTestUTXOs(t, 50000000) // 0.5 BSV
+
+	t.Run("valid pledge creation", func(t *testing.T) {
+		pledgeAmount := uint64(25000000) // 0.25 BSV
+
+		pledge, err := NewPledge(project, pledgeAmount, utxos)
+		require.NoError(t, err)
+		assert.NotNil(t, pledge)
+
+		// Check properties
+		assert.Equal(t, pledgeAmount, pledge.Amount())
+		assert.Equal(t, project.ID(), pledge.ProjectID())
+		assert.NotEmpty(t, pledge.ID())
+		assert.NotNil(t, pledge.Transaction())
+	})
+
+	t.Run("amount below minimum", func(t *testing.T) {
+		pledgeAmount := uint64(5000) // Below minimum
+
+		pledge, err := NewPledge(project, pledgeAmount, utxos)
+		assert.Error(t, err)
+		assert.Nil(t, pledge)
+		assert.Contains(t, err.Error(), "less than minimum")
+	})
+
+	t.Run("insufficient funds", func(t *testing.T) {
+		pledgeAmount := uint64(60000000) // More than UTXO value
+
+		pledge, err := NewPledge(project, pledgeAmount, utxos)
+		assert.Error(t, err)
+		assert.Nil(t, pledge)
+		assert.Contains(t, err.Error(), "insufficient funds")
+	})
+}
+
+func TestPledgeMetadata(t *testing.T) {
+	// Create test project and pledge
+	project, err := NewProject(
+		"Test Project",
+		"Test Description",
+		100000000,
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	utxos := createTestUTXOs(t, 50000000)
+	pledge, err := NewPledge(project, 25000000, utxos)
+	require.NoError(t, err)
+
+	// Test memo
+	memo := "Great project! Happy to support!"
+	pledge.SetMemo(memo)
+	// Note: We'd need a getter to test this properly
+
+	// Test refund address
+	refundAddr := "1RefundAddressForTesting12345"
+	pledge.SetRefundAddress(refundAddr)
+
+	// Test contact info
+	pledge.SetContactInfo("John Doe", "john@example.com")
+
+	// Verify the pledge can still be serialized
+	data, err := pledge.Serialize()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, data)
+}
+
+func TestPledgeSerialization(t *testing.T) {
+	// Create test data
+	project, err := NewProject(
+		"Serialization Test",
+		"Test Description",
+		100000000,
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	utxos := createTestUTXOs(t, 50000000)
+	pledge, err := NewPledge(project, 25000000, utxos)
+	require.NoError(t, err)
+
+	// Serialize
+	data, err := pledge.Serialize()
+	require.NoError(t, err)
+	assert.NotEmpty(t, data)
+
+	// Load from serialized data
+	loaded, err := LoadPledge(data)
+	require.NoError(t, err)
+	assert.NotNil(t, loaded)
+
+	// Compare properties
+	assert.Equal(t, pledge.ID(), loaded.ID())
+	assert.Equal(t, pledge.ProjectID(), loaded.ProjectID())
+	assert.Equal(t, pledge.Amount(), loaded.Amount())
+}
+
+func TestPledgeValidation(t *testing.T) {
+	// Create test data
+	project, err := NewProject(
+		"Validation Test",
+		"Test Description",
+		100000000,
+		"1NKNazRR5jKgGqELVHDK47JAZrqtAWWy5q",
+	)
+	require.NoError(t, err)
+
+	utxos := createTestUTXOs(t, 50000000)
+	pledge, err := NewPledge(project, 25000000, utxos)
+	require.NoError(t, err)
+
+	// Should be invalid before signing
+	err = pledge.Validate()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not signed")
+
+	// After signing it should be valid (once we implement proper signing)
+	// For now, this test documents the expected behavior
+}
+
+// Helper function to create test UTXOs
+func createTestUTXOs(t *testing.T, satoshis uint64) []*transaction.UTXO {
+	// Create a dummy UTXO for testing
+	// In a real scenario, this would come from actual blockchain data
+	
+	// Create a dummy transaction ID (32 bytes)
+	dummyTxBytes := make([]byte, 32)
+	for i := range dummyTxBytes {
+		dummyTxBytes[i] = byte(i) // Fill with dummy data
+	}
+	
+	// Create UTXO using the NewUTXO helper
+	// Use a simple P2PKH script hex for testing
+	lockingScriptHex := "76a914" + "1234567890123456789012345678901234567890" + "88ac" // Dummy P2PKH
+	
+	utxo, err := transaction.NewUTXO(
+		"1234567890123456789012345678901234567890123456789012345678901234", // 64 char hex string
+		0,
+		lockingScriptHex,
+		satoshis,
+	)
+	require.NoError(t, err)
+	
+	return []*transaction.UTXO{utxo}
+}
